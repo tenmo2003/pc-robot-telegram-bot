@@ -1,6 +1,6 @@
 const { exec } = require('child_process');
 
-async function scheduleShutdown(minutes, force = false) {
+async function scheduleShutdown(minutes, force = true) {
   const platform = process.platform;
   const time = parseInt(minutes, 10);
 
@@ -34,14 +34,13 @@ module.exports = (bot) => {
     const parts = messageText.split(' ');
 
     if (parts.length < 2) {
-      return ctx.reply('Please specify the time in minutes. Usage: /shutdown <minutes> [force]');
+      return ctx.reply('Please specify the time in minutes. Usage: /shutdown <minutes>');
     }
 
     const minutes = parts[1];
-    const force = parts[2] === 'force';
 
     try {
-      const resultMessage = await scheduleShutdown(minutes, force);
+      const resultMessage = await scheduleShutdown(minutes, true);
       await ctx.answerCbQuery(resultMessage, { show_alert: true });
     } catch (error) {
       console.error('Error scheduling shutdown:', error);
