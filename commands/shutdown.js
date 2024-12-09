@@ -1,6 +1,6 @@
 const { exec } = require('child_process');
 
-async function scheduleShutdown(minutes) {
+async function scheduleShutdown(minutes, force = false) {
   const platform = process.platform;
   const time = parseInt(minutes, 10);
 
@@ -9,15 +9,14 @@ async function scheduleShutdown(minutes) {
   }
 
   if (platform === 'win32') {
-    // Windows: shutdown /s /t X (X in seconds)
+    const forceFlag = force ? ' /f' : '';
     return new Promise((resolve, reject) => {
-      exec(`shutdown /s /t ${time * 60}`, (error) => {
+      exec(`shutdown /s /t ${time * 60}${forceFlag}`, (error) => {
         if (error) return reject(error);
-        resolve(`System will shut down in ${time} minute(s).`);
+        resolve(`System will shut down in ${time} minute(s).${force ? ' (Forced)' : ''}`);
       });
     });
   } else if (platform === 'darwin' || platform === 'linux') {
-    // macOS/Linux: shutdown -h +M (M in minutes)
     return new Promise((resolve, reject) => {
       exec(`sudo shutdown -h +${time}`, (error) => {
         if (error) return reject(error);
@@ -35,16 +34,18 @@ module.exports = (bot) => {
     const parts = messageText.split(' ');
 
     if (parts.length < 2) {
-      return ctx.reply('Please specify the time in minutes. For example: /shutdown 30');
+      return ctx.reply('Please specify the time in minutes. Usage: /shutdown <minutes> [force]');
     }
 
     const minutes = parts[1];
+    const force = parts[2] === 'force';
+
     try {
-      const resultMessage = await scheduleShutdown(minutes);
-      await ctx.reply(resultMessage);
+      const resultMessage = await scheduleShutdown(minutes, force);
+      await ctx.answerCbQuery(resultMessage, { show_alert: true });
     } catch (error) {
       console.error('Error scheduling shutdown:', error);
-      await ctx.reply(`Failed to schedule shutdown: ${error.message}`);
+      await ctx.answerCbQuery(`Failed to schedule shutdown: ${error.message}`, { show_alert: true });
     }
   });
 };
