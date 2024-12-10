@@ -2,9 +2,9 @@
   "name": "pc-remote-bot",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "bot.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node bot.js"
   },
   "private": true,
   "dependencies": {
